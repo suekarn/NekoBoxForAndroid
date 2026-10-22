@@ -1,7 +1,6 @@
 name: Preview Build
 on:
   workflow_dispatch:
-    inputs:
 jobs:
   libcore:
     name: Native Build (LibCore)
@@ -36,6 +35,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      # Perbaikan: paksa JDK 17 agar Gradle tidak memakai JDK 25 bawaan runner
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
       - name: Golang Status
         run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
       - name: Libcore Status
