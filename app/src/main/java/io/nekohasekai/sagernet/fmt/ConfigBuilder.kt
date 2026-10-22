@@ -495,6 +495,7 @@ fun buildConfig(
                 PackageCache[it]?.takeIf { uid -> uid >= 1000 }
             }.toHashSet().filterNotNull()
             val ruleSets = mutableListOf<RuleSet>()
+            RuleProvider.takeFailed()
 
             val ruleObj = Rule_DefaultOptions().apply {
                 if (uidList.isNotEmpty()) {
@@ -582,6 +583,16 @@ fun buildConfig(
                 }
 
                 _hack_custom_config = rule.config
+            }
+
+            val failedProviders = RuleProvider.takeFailed()
+            if (failedProviders.isNotEmpty()) {
+                // Aturan dilewati agar tidak menjadi aturan yang terlalu luas.
+                RuleProvider.warn(
+                    "Warning: " + rule.displayName() + ": gagal memuat rule provider " +
+                            failedProviders.joinToString(", ")
+                )
+                continue
             }
 
             if (!ruleObj.checkEmpty()) {

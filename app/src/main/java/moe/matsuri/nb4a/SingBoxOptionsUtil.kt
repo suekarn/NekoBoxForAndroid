@@ -36,6 +36,8 @@ fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(list: List<String>) {
     list.forEach {
         if (it.startsWith("geosite:")) {
             rule_set.plusAssign(it)
+        } else if (it.startsWith("ruleset:")) {
+            if (RuleProvider.resolve(it.removePrefix("ruleset:")) != null) rule_set.plusAssign(it)
         } else if (it.startsWith("full:")) {
             domain.plusAssign(it.removePrefix("full:").lowercase())
         } else if (it.startsWith("domain:")) {
@@ -90,6 +92,18 @@ fun generateRuleSet(ruleSetString: List<String>, ruleSet: MutableList<RuleSet>) 
                     path = it
                 })
             }
+
+            it.startsWith("ruleset:") -> {
+                val r = RuleProvider.resolve(it.removePrefix("ruleset:"))
+                if (r != null) {
+                    ruleSet.add(RuleSet().apply {
+                        type = "local"
+                        tag = it
+                        format = r.format
+                        path = r.path
+                    })
+                }
+            }
         }
     }
 }
@@ -97,9 +111,9 @@ fun generateRuleSet(ruleSetString: List<String>, ruleSet: MutableList<RuleSet>) 
 fun SingBoxOptions.Rule_DefaultOptions.makeSingBoxRule(list: List<String>, isIP: Boolean) {
     if (isIP) {
         ip_cidr = mutableListOf<String>()
-        rule_set = mutableListOf<String>()
+        if (rule_set == null) rule_set = mutableListOf<String>()
     } else {
-        rule_set = mutableListOf<String>()
+        if (rule_set == null) rule_set = mutableListOf<String>()
         domain = mutableListOf<String>()
         domain_suffix = mutableListOf<String>()
         domain_regex = mutableListOf<String>()
@@ -113,6 +127,8 @@ fun SingBoxOptions.Rule_DefaultOptions.makeSingBoxRule(list: List<String>, isIP:
                 } else {
                     rule_set.plusAssign(it)
                 }
+            } else if (it.startsWith("ruleset:")) {
+                if (RuleProvider.resolve(it.removePrefix("ruleset:")) != null) rule_set.plusAssign(it)
             } else {
                 ip_cidr.plusAssign(it)
             }
@@ -120,6 +136,8 @@ fun SingBoxOptions.Rule_DefaultOptions.makeSingBoxRule(list: List<String>, isIP:
         }
         if (it.startsWith("geosite:")) {
             rule_set.plusAssign(it)
+        } else if (it.startsWith("ruleset:")) {
+            if (RuleProvider.resolve(it.removePrefix("ruleset:")) != null) rule_set.plusAssign(it)
         } else if (it.startsWith("full:")) {
             domain.plusAssign(it.removePrefix("full:").lowercase())
         } else if (it.startsWith("domain:")) {
